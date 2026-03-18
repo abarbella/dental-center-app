@@ -39,11 +39,13 @@ public class SecurityConfig {
                 .successHandler((request, response, authentication) -> {
                     String roles = authentication.getAuthorities().toString();
                     
-                    // Logica di redirect basata sul ruolo
-                    if (roles.contains("ROLE_MEDICO") || roles.contains("ROLE_STAFF")) {
-                        response.sendRedirect("/home");
+                 // Logica di redirect basata sul ruolo
+                    if (roles.contains("ROLE_MEDICO")) {
+                        response.sendRedirect("/home"); 
+                    } else if (roles.contains("ROLE_STAFF")) {
+                        response.sendRedirect("/home-staff"); 
                     } else if (roles.contains("ROLE_PAZIENTE")) {
-                        response.sendRedirect("/paziente/home");
+                        response.sendRedirect("/area-paziente"); 
                     } else {
                         response.sendRedirect("/login?error");
                     }

@@ -18,7 +18,7 @@
 body {
 	background-color: #f4f7f6;
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-	overflow-x: hidden; /* Nasconde lo scorrimento orizzontale generale */
+	overflow-x: hidden; 
 }
 
 /* Sidebar coordinata e responsiva */
@@ -26,9 +26,8 @@ body {
 	min-height: 100vh;
 	background: var(--primary-color);
 	color: white;
-	/* Larghezza relativa per adattarsi allo schermo */
 	width: 20%; 
-	max-width: 250px; /* Larghezza massima per evitare che sia troppo larga */
+	max-width: 250px; 
 	position: fixed;
 	z-index: 1000;
 	transition: width 0.3s;
@@ -56,9 +55,8 @@ body {
 
 /* Main Content fluido */
 .main-content {
-	/* Margine sinistro relativo alla sidebar per adattarsi */
 	margin-left: 20%; 
-	width: 80%; /* Larghezza relativa */
+	width: 80%; 
 	padding: 30px;
 	transition: margin-left 0.3s, width 0.3s;
 }
@@ -117,15 +115,14 @@ body {
 	transition: 0.2s;
 }
 
-/* Stile Esci coordinato */
 .logout-container {
 	margin-top: auto;
 	padding: 20px;
 	border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Classi per l'allineamento e lo stile del logo */
-.text-center { text-center; }
+/* Classi corrette per allineamento */
+.text-center { text-align: center; }
 .mb-4 { margin-bottom: 1.5rem; }
 .mb-2 { margin-bottom: 0.5rem; }
 .fa-2x { font-size: 2em; }
@@ -146,8 +143,7 @@ body {
 						<i class="fas fa-tooth text-info fa-2x"></i>
 					</div>
 					<h3 class="fw-bold mb-0 text-white">DentalCenter</h3>
-					<span class="badge bg-info text-dark small mt-2">Professional
-						Edition</span>
+					<span class="badge bg-info text-dark small mt-2">Professional Edition</span>
 				</div>
 				<div class="px-2">
 					<ul class="nav flex-column">
@@ -176,8 +172,7 @@ body {
 				<div class="d-flex justify-content-between align-items-center mb-4">
 					<div>
 						<h1 class="fw-bold mb-0 text-dark">Anagrafica Pazienti</h1>
-						<p class="text-muted">Database centrale dello studio
-							DentalCenter</p>
+						<p class="text-muted">Database centrale dello studio DentalCenter</p>
 					</div>
 
 					<div class="d-flex gap-2">
@@ -236,15 +231,16 @@ body {
 													th:text="${p.telefono}"></span>
 											</div>
 										</td>
-										<td><span
-											th:if="${p.allergie != null and p.allergie != ''}"
-											class="badge bg-danger-subtle text-danger border border-danger-subtle allergy-badge">
-												<i class="fas fa-exclamation-triangle me-1"></i> <span
-												th:text="${p.allergie}"></span>
-										</span> <span th:unless="${p.allergie != null and p.allergie != ''}"
-											class="badge bg-success-subtle text-success border border-success-subtle allergy-badge">
+										<td>
+											<span th:if="${p.allergie != null and p.allergie != ''}"
+												class="badge bg-danger-subtle text-danger border border-danger-subtle allergy-badge">
+												<i class="fas fa-exclamation-triangle me-1"></i> <span th:text="${p.allergie}"></span>
+											</span> 
+											<span th:unless="${p.allergie != null and p.allergie != ''}"
+												class="badge bg-success-subtle text-success border border-success-subtle allergy-badge">
 												<i class="fas fa-check me-1"></i> Nessuna Allergia
-										</span></td>
+											</span>
+										</td>
 										<td class="text-end pe-4">
 											<div class="d-flex justify-content-end gap-2">
 												<a th:href="@{/pazienti/cartella/{id}(id=${p.id})}"
@@ -265,12 +261,11 @@ body {
 											</div>
 										</td>
 									</tr>
-									<tr th:if="${#lists.isEmpty(pazienti)}">
+									<tr th:if="${pazienti == null or #lists.isEmpty(pazienti)}">
 										<td colspan="5" class="text-center py-5">
 											<div class="text-muted">
 												<i class="fas fa-users-slash fa-3x mb-3 opacity-25"></i>
-												<p>L'archivio è vuoto. Inizia inserendo un nuovo
-													paziente.</p>
+												<p>L'archivio è vuoto. Inizia inserendo un nuovo paziente.</p>
 											</div>
 										</td>
 									</tr>
@@ -280,9 +275,6 @@ body {
 					</div>
 				</div>
 			</main>
-		</div>
-
-		<script
-			src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+		</div> </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

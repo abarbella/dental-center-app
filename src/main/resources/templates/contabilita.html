@@ -174,7 +174,7 @@
                                     <td class="ps-4" th:text="${m.data != null ? m.data : '-'}"></td>
                                     <td>
                                         <span class="badge rounded-pill px-3 py-2" 
-                                              th:classappend="${m.importo > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}" 
+                                              th:classappend="${m.importo != null and m.importo > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}" 
                                               th:text="${m.tipo != null ? m.tipo : 'Generico'}"></span>
                                     </td>
                                     <td>
@@ -183,11 +183,12 @@
                                         <small class="text-primary fw-bold" th:if="${m.paziente != null}" th:text="'Paziente: ' + ${m.paziente.cognome}"></small>
                                     </td>
                                     <td class="text-end pe-4 fw-bold fs-5" 
-                                        th:classappend="${m.importo > 0 ? 'text-success' : 'text-danger'}" 
-                                        th:text="${m.importo != null ? ((m.importo > 0 ? '+ ' : '') + #numbers.formatDecimal(m.importo, 1, 2) + ' €') : '0.00 €'}">
+                                        th:classappend="${m.importo != null and m.importo > 0 ? 'text-success' : 'text-danger'}">
+                                        <span th:if="${m.importo != null and m.importo > 0}" th:text="'+ ' + ${#numbers.formatDecimal(m.importo, 1, 2)} + ' €'"></span>
+                                        <span th:if="${m.importo != null and m.importo <= 0}" th:text="${#numbers.formatDecimal(m.importo, 1, 2)} + ' €'"></span>
                                     </td>
                                 </tr>
-                                <tr th:if="${#lists.isEmpty(movimenti)}">
+                                <tr th:if="${movimenti == null or #lists.isEmpty(movimenti)}">
                                     <td colspan="4" class="text-center text-muted py-5">Nessun movimento registrato.</td>
                                 </tr>
                             </tbody>
@@ -199,8 +200,9 @@
     </div>
 
     <script th:inline="javascript">
-        const entrateMese = [[${entrateMensili}]];
-        const usciteMese = [[${usciteMensili}]];
+        // Aggiunti valori di default sicuri per evitare crash del grafico se il db è vuoto
+        const entrateMese = [[${entrateMensili}]] || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        const usciteMese = [[${usciteMensili}]] || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
         if (document.getElementById('monthlyChart')) {
             const ctx = document.getElementById('monthlyChart').getContext('2d');

@@ -5,21 +5,27 @@
     <title>Prenota Visita - DentalApp</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        #calendar { max-width: 900px; margin: 20px auto; background: white; padding: 15px; border-radius: 10px; }
-        .fc-event { cursor: not-allowed; opacity: 0.8; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; }
+        #calendar { max-width: 950px; margin: 20px auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: none; }
+        .fc-event { cursor: not-allowed !important; opacity: 0.9; border: none !important; border-radius: 4px !important; }
+        .card { border-radius: 15px; border: none; }
     </style>
 </head>
 <body class="bg-light">
     <div class="container py-5">
-        <h2 class="text-center mb-4 text-primary">Prenota la tua Visita Online</h2>
+        <div class="text-center mb-5">
+            <h2 class="fw-bold text-primary mb-2"><i class="fas fa-calendar-check me-2"></i>Prenota la tua Visita Online</h2>
+            <p class="text-muted">Servizio di prenotazione rapida DentalCenter</p>
+        </div>
         
-        <div class="card shadow-sm mb-4">
-            <div class="card-body text-center">
-                <p>Seleziona un orario libero (in bianco) per fissare il tuo appuntamento.</p>
-                <div class="d-flex justify-content-center gap-3">
-                    <span><i class="fas fa-square text-danger"></i> Occupato</span>
-                    <span><i class="fas fa-square text-secondary"></i> Studio Chiuso</span>
+        <div class="card shadow-sm mb-4 mx-auto" style="max-width: 950px;">
+            <div class="card-body text-center p-4">
+                <p class="mb-3 fw-bold text-dark">Seleziona un orario libero (in bianco) nel calendario sottostante per fissare il tuo appuntamento.</p>
+                <div class="d-flex justify-content-center gap-4">
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle p-2 fs-6 rounded-pill"><i class="fas fa-square text-danger me-2"></i> Orario Occupato</span>
+                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle p-2 fs-6 rounded-pill"><i class="fas fa-square text-secondary me-2"></i> Studio Chiuso / Ferie</span>
                 </div>
             </div>
         </div>
@@ -28,27 +34,31 @@
     </div>
 
     <div class="modal fade" id="modalPrenota" tabindex="-1">
-        <div class="modal-dialog">
-            <form th:action="@{/appuntamenti/salva}" method="post" class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Conferma Prenotazione</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <form th:action="@{/appuntamenti/salva}" method="post" class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-primary text-white py-4 border-0">
+                    <h5 class="modal-title fw-bold">Conferma Prenotazione</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Chi sei?</label>
-                        <select name="pazienteId" class="form-select" required>
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Chi sei?</label>
+                        <select name="pazienteId" class="form-select border-2 shadow-sm" required>
+                            <option value="">Seleziona il tuo profilo...</option>
                             <option th:each="p : ${pazienti}" th:value="${p.id}" th:text="${p.cognome} + ' ' + ${p.nome}"></option>
                         </select>
                     </div>
+                    
                     <input type="hidden" name="dataOra" id="inputDataOra">
-                    <div class="mb-3">
-                        <label class="form-label">Motivo della visita</label>
-                        <input type="text" name="motivo" class="form-control" placeholder="Es. Controllo, Pulizia..." required>
+                    <input type="hidden" name="dataFine" id="inputDataFine">
+                    
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Motivo della visita</label>
+                        <input type="text" name="motivo" class="form-control border-2 shadow-sm" placeholder="Es. Controllo periodico, Pulizia, Urgenza..." required>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-success w-100">Prenota Ora</button>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow">CONFERMA E PRENOTA ORA</button>
                 </div>
             </form>
         </div>
@@ -62,35 +72,71 @@
             var modal = new bootstrap.Modal(document.getElementById('modalPrenota'));
             var eventi = [];
 
-            /* Appuntamenti esistenti -> Diventano rossi e anonimi */
-            eventi.push({
-                title: 'OCCUPATO',
-                start: [[${a.dataOra}]],
-                color: '#e74c3c' // Rosso
-            });
+            // CICLO THYMELEAF RIPRISTINATO
+            /*[# th:each="a : ${appuntamenti}"]*/
+            (function() {
+                var start = [[${a.dataOra}]];
+                var end = [[${a.dataFine}]];
+                if (start && end) {
+                    eventi.push({
+                        title: 'OCCUPATO',
+                        start: start,
+                        end: end,
+                        color: '#e74c3c' // Rosso
+                    });
+                }
+            })();
             /*[/]*/
 
-            /* Chiusure Studio -> Grigio scuro */
-            eventi.push({
-                title: 'CHIUSO',
-                start: [[${c.inizio}]],
-                end: [[${c.fine}]],
-                color: '#95a5a6', // Grigio
-                display: 'background'
-            });
+            // CICLO THYMELEAF CHIUSURE RIPRISTINATO
+            /*[# th:each="c : ${chiusure}"]*/
+            (function() {
+                var s = [[${c.inizio}]];
+                var e = [[${c.fine}]];
+                if (s && e) {
+                    eventi.push({
+                        title: 'CHIUSO',
+                        start: s,
+                        end: e,
+                        color: '#95a5a6', // Grigio
+                        display: 'background'
+                    });
+                }
+            })();
             /*[/]*/
 
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'timeGridWeek',
                 locale: 'it',
-                slotMinTime: '08:00:00',
-                slotMaxTime: '20:00:00',
+                slotMinTime: '08:30:00',
+                slotMaxTime: '20:30:00',
                 allDaySlot: false,
+                firstDay: 1, // La settimana inizia di Lunedì
                 events: eventi,
+                businessHours: [
+                    { daysOfWeek: [1,2,3,4,5,6], startTime: '09:00', endTime: '12:00' },
+                    { daysOfWeek: [1,2,3,4,5,6], startTime: '15:00', endTime: '20:00' }
+                ],
+                selectConstraint: 'businessHours',
                 dateClick: function(info) {
-                    // Verifichiamo che non clicchi su un'ora passata o occupata
+                    var clickDate = new Date(info.dateStr);
+                    var today = new Date();
+                    
+                    if (clickDate < today) { 
+                        alert("Non puoi prenotare in un orario già passato!"); 
+                        return; 
+                    }
+
+                    // Calcolo automatico della dataFine (1 ora dopo) per il database
+                    let fine = new Date(clickDate);
+                    fine.setHours(fine.getHours() + 1);
+                    let tzOffset = fine.getTimezoneOffset() * 60000;
+                    let localISOTimeFine = new Date(fine - tzOffset).toISOString().substring(0, 16);
+
                     let dataScelta = info.dateStr.substring(0, 16);
                     document.getElementById('inputDataOra').value = dataScelta;
+                    document.getElementById('inputDataFine').value = localISOTimeFine; // Compila il campo nascosto
+                    
                     modal.show();
                 }
             });

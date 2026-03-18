@@ -137,6 +137,7 @@
         var idPazienteLoggato = [[${paziente.id}]];
         var eventiRaw = [];
 
+        /*[# th:each="a : ${appuntamenti}"]*/
         (function() {
             var start = [[${a.dataOra}]];
             var end = [[${a.dataFine}]];
@@ -167,6 +168,7 @@
         })();
         /*[/]*/
         
+        /*[# th:each="c : ${chiusure}"]*/
         (function() {
             var s = [[${c.inizio}]];
             var e = [[${c.fine}]];

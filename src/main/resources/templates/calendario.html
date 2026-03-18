@@ -24,7 +24,6 @@
         .list-chiusure { max-height: 250px; overflow-y: auto; scrollbar-width: thin; }
         .chiusura-item { background: rgba(255,255,255,0.05) !important; color: white !important; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important; margin-bottom: 5px; }
         
-        /* Aggiunto il CSS mancante per il contenitore del pulsante Esci */
         .logout-container { margin-top: auto; padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
     </style>
 </head>
@@ -199,7 +198,7 @@
             
             var eventi = [];
 
-            /* RECUPERO APPUNTAMENTI */
+            /*[# th:each="a : ${appuntamenti}"]*/
                 if ([[${a.paziente != null}]] && [[${a.dataOra != null}]]) {
                     eventi.push({
                         id: [[${a.id}]],
@@ -212,7 +211,7 @@
                 }
             /*[/]*/
 
-            /* RECUPERO CHIUSURE */
+            /*[# th:each="c : ${chiusure}"]*/
                 if ([[${c.inizio != null}]]) {
                     eventi.push({
                         id: [[${c.id}]],
