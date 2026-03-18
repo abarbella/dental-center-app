@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Prenota Visita - DentalApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <style>
+        #calendar { max-width: 900px; margin: 20px auto; background: white; padding: 15px; border-radius: 10px; }
+        .fc-event { cursor: not-allowed; opacity: 0.8; }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <h2 class="text-center mb-4 text-primary">Prenota la tua Visita Online</h2>
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-body text-center">
+                <p>Seleziona un orario libero (in bianco) per fissare il tuo appuntamento.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <span><i class="fas fa-square text-danger"></i> Occupato</span>
+                    <span><i class="fas fa-square text-secondary"></i> Studio Chiuso</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="calendar"></div>
+    </div>
+
+    <div class="modal fade" id="modalPrenota" tabindex="-1">
+        <div class="modal-dialog">
+            <form th:action="@{/appuntamenti/salva}" method="post" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Conferma Prenotazione</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Chi sei?</label>
+                        <select name="pazienteId" class="form-select" required>
+                            <option th:each="p : ${pazienti}" th:value="${p.id}" th:text="${p.cognome} + ' ' + ${p.nome}"></option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="dataOra" id="inputDataOra">
+                    <div class="mb-3">
+                        <label class="form-label">Motivo della visita</label>
+                        <input type="text" name="motivo" class="form-control" placeholder="Es. Controllo, Pulizia..." required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success w-100">Prenota Ora</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var modal = new bootstrap.Modal(document.getElementById('modalPrenota'));
+            var eventi = [];
+
+            /* Appuntamenti esistenti -> Diventano rossi e anonimi */
+            eventi.push({
+                title: 'OCCUPATO',
+                start: [[${a.dataOra}]],
+                color: '#e74c3c' // Rosso
+            });
+            /*[/]*/
+
+            /* Chiusure Studio -> Grigio scuro */
+            eventi.push({
+                title: 'CHIUSO',
+                start: [[${c.inizio}]],
+                end: [[${c.fine}]],
+                color: '#95a5a6', // Grigio
+                display: 'background'
+            });
+            /*[/]*/
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                locale: 'it',
+                slotMinTime: '08:00:00',
+                slotMaxTime: '20:00:00',
+                allDaySlot: false,
+                events: eventi,
+                dateClick: function(info) {
+                    // Verifichiamo che non clicchi su un'ora passata o occupata
+                    let dataScelta = info.dateStr.substring(0, 16);
+                    document.getElementById('inputDataOra').value = dataScelta;
+                    modal.show();
+                }
+            });
+            calendar.render();
+        });
+    </script>
+</body>
+</html>

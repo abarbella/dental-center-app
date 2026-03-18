@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>DentalCenter - Agenda Studio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-color: #2c3e50; --accent-color: #3498db; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
+        
+        .sidebar { min-height: 100vh; background: var(--primary-color); color: white; width: 16.66%; position: fixed; z-index: 1000; }
+        .nav-link { color: #bdc3c7; margin: 4px 0; transition: 0.3s; padding: 12px 20px; }
+        .nav-link:hover { color: white; background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .nav-link.active { background: var(--accent-color); color: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3); }
+        
+        .main-content { margin-left: 16.66%; width: 83.34%; padding: 30px; }
+        
+        #calendar { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: none; min-height: 700px; }
+        .fc-event { cursor: pointer; border: none !important; padding: 4px 6px; transition: 0.2s; border-radius: 5px !important; }
+        .fc-event:hover { opacity: 0.9; transform: scale(1.01); }
+        
+        .list-chiusure { max-height: 250px; overflow-y: auto; scrollbar-width: thin; }
+        .chiusura-item { background: rgba(255,255,255,0.05) !important; color: white !important; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important; margin-bottom: 5px; }
+        
+        /* Aggiunto il CSS mancante per il contenitore del pulsante Esci */
+        .logout-container { margin-top: auto; padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <nav class="sidebar d-flex flex-column p-3">
+				<div class="text-center mb-4">
+					<div class="mb-2">
+						<i class="fas fa-tooth text-info fa-2x"></i>
+					</div>
+					<h3 class="fw-bold mb-0 text-white">DentalCenter</h3>
+					<span class="badge bg-info text-dark small mt-2">Professional Edition</span>
+                </div>
+                
+                <div class="px-2">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/home"><i class="fas fa-th-large me-2"></i> Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/calendario"><i class="fas fa-calendar-alt me-2"></i> Agenda</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/pazienti"><i class="fas fa-user-friends me-2"></i> Pazienti</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/contabilita"><i class="fas fa-chart-line me-2"></i> Contabilità</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mt-4 px-2">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-uppercase fw-bold opacity-50" style="font-size: 0.7rem;">Chiusure Studio</small>
+                        <span class="badge bg-danger rounded-pill" th:text="${chiusure != null ? #lists.size(chiusure) : 0}">0</span>
+                    </div>
+                    <div class="list-chiusure">
+                        <div th:each="c : ${chiusure}" class="chiusura-item p-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div style="font-size: 0.8rem;">
+                                    <div class="fw-bold" th:text="${c.motivo}">Ferie</div>
+                                    <div class="opacity-75" th:text="${#temporals.format(c.inizio, 'dd/MM HH:mm')}"></div>
+                                </div>
+                                <a th:href="@{/chiusure/elimina/{id}(id=${c.id})}" class="text-danger" onclick="return confirm('Eliminare questa chiusura?')">
+                                    <i class="fas fa-times-circle"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="logout-container mt-auto">
+				<form th:action="@{/logout}" method="post">
+					<button type="submit"
+						class="btn btn-outline-danger w-100 rounded-pill border-2 fw-bold">
+						<i class="fas fa-power-off me-2"></i> Esci
+					</button>
+				</form>
+			</div>
+            </nav>
+
+            <main class="main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="fw-bold mb-0">Agenda Studio</h1>
+                        <p class="text-muted">Gestione appuntamenti e disponibilità clinica</p>
+                    </div>
+                    <div class="badge bg-white text-primary p-3 shadow-sm rounded-4 border">
+                        <i class="fas fa-mouse-pointer me-2"></i>Clicca su un orario per inserire un evento
+                    </div>
+                </div>
+                <div id='calendar'></div>
+            </main>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalScelta" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content text-center p-4 border-0 shadow-lg" style="border-radius: 20px;">
+                <h5 class="fw-bold mb-4">Nuovo Evento</h5>
+                <button class="btn btn-primary mb-3 w-100 py-3 rounded-4 fw-bold shadow-sm" onclick="apriModalAppuntamento()">
+                    <i class="fas fa-user-check me-2"></i>Appuntamento
+                </button>
+                <button class="btn btn-danger w-100 py-3 rounded-4 fw-bold shadow-sm" onclick="apriModalFerie()">
+                    <i class="fas fa-plane me-2"></i>Ferie / Chiusura
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAppuntamento" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form th:action="@{/appuntamenti/salva}" method="post" class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-primary text-white border-0 py-4 px-4" style="border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-calendar-plus me-2"></i>Nuovo Appuntamento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Paziente</label>
+                        <select name="pazienteId" class="form-select form-select-lg border-2 shadow-sm" required>
+                            <option value="">Seleziona paziente...</option>
+                            <option th:each="p : ${pazienti}" th:value="${p.id}" th:text="${p.cognome} + ' ' + ${p.nome}"></option>
+                        </select>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <label class="form-label fw-bold text-muted small text-uppercase">Inizio</label>
+                            <input type="datetime-local" name="dataOra" id="inputDataOra" class="form-control border-2 shadow-sm" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold text-muted small text-uppercase">Fine</label>
+                            <input type="datetime-local" name="dataFine" id="inputDataFine" class="form-control border-2 shadow-sm" required>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Motivo / Intervento</label>
+                        <input type="text" name="motivo" class="form-control border-2 shadow-sm" placeholder="Es. Igiene, Estrazione..." required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4">
+                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow">SALVA APPUNTAMENTO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalChiusura" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form th:action="@{/chiusure/salva}" method="post" class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-danger text-white border-0 py-4 px-4" style="border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-ban me-2"></i>Blocca Agenda / Ferie</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Motivo</label>
+                        <input type="text" name="motivo" class="form-control border-2 shadow-sm" placeholder="Es. Chiusura Festiva" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="form-label fw-bold text-muted small text-uppercase">Inizio</label>
+                            <input type="datetime-local" name="inizio" id="inputInizioFerie" class="form-control border-2 shadow-sm" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold text-muted small text-uppercase">Fine</label>
+                            <input type="datetime-local" name="fine" id="inputFineFerie" class="form-control border-2 shadow-sm" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4">
+                    <button type="submit" class="btn btn-danger w-100 py-3 rounded-4 fw-bold shadow">SALVA CHIUSURA</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script th:inline="javascript">
+        let dataInizioSelezionata = '';
+        let dataFineCalcolata = '';
+        let modalScelta, modalApp, modalChiusura;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            modalScelta = new bootstrap.Modal(document.getElementById('modalScelta'));
+            modalApp = new bootstrap.Modal(document.getElementById('modalAppuntamento'));
+            modalChiusura = new bootstrap.Modal(document.getElementById('modalChiusura'));
+            
+            var eventi = [];
+
+            /* RECUPERO APPUNTAMENTI */
+                if ([[${a.paziente != null}]] && [[${a.dataOra != null}]]) {
+                    eventi.push({
+                        id: [[${a.id}]],
+                        title: [[${a.paziente.cognome}]] + ' - ' + [[${a.motivo}]],
+                        start: [[${a.dataOra}]],
+                        end: [[${a.dataFine}]],
+                        color: '#3498db',
+                        extendedProps: { type: 'appuntamento' }
+                    });
+                }
+            /*[/]*/
+
+            /* RECUPERO CHIUSURE */
+                if ([[${c.inizio != null}]]) {
+                    eventi.push({
+                        id: [[${c.id}]],
+                        title: 'CHIUSO: ' + [[${c.motivo}]],
+                        start: [[${c.inizio}]],
+                        end: [[${c.fine}]],
+                        color: '#e74c3c',
+                        display: 'background',
+                        extendedProps: { type: 'chiusura' }
+                    });
+                }
+            /*[/]*/
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                locale: 'it',
+                slotMinTime: '08:30:00',
+                slotMaxTime: '20:30:00',
+                allDaySlot: false,
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'timeGridWeek,timeGridDay' },
+                events: eventi,
+                selectable: true,
+                dateClick: function(info) {
+                    let dateStr = info.dateStr.substring(0, 16);
+                    if(dateStr.length === 10) dateStr += 'T09:00';
+                    
+                    dataInizioSelezionata = dateStr;
+                    
+                    let d = new Date(dataInizioSelezionata);
+                    d.setHours(d.getHours() + 1);
+                    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                    dataFineCalcolata = d.toISOString().substring(0, 16);
+
+                    modalScelta.show();
+                },
+                eventClick: function(info) {
+                    if (info.event.extendedProps.type === 'appuntamento') {
+                        if (confirm("Vuoi cancellare l'appuntamento di " + info.event.title + "?")) {
+                            window.location.href = "/appuntamenti/elimina/" + info.event.id;
+                        }
+                    }
+                }
+            });
+            calendar.render();
+        });
+
+        function apriModalAppuntamento() {
+            document.getElementById('inputDataOra').value = dataInizioSelezionata;
+            document.getElementById('inputDataFine').value = dataFineCalcolata;
+            modalScelta.hide();
+            modalApp.show();
+        }
+
+        function apriModalFerie() {
+            document.getElementById('inputInizioFerie').value = dataInizioSelezionata;
+            document.getElementById('inputFineFerie').value = dataFineCalcolata;
+            modalScelta.hide();
+            modalChiusura.show();
+        }
+    </script>
+</body>
+</html>

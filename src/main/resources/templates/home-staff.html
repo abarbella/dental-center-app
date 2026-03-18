@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>DentalCenter - Staff Console</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-color: #2c3e50; --accent-color: #3498db; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        
+        /* Sidebar Minimalista */
+        .sidebar { min-height: 100vh; background: var(--primary-color); color: white; width: 16.66%; position: fixed; }
+        .nav-link.active { background: var(--accent-color); color: white; border-radius: 10px; }
+        
+        .main-content { margin-left: 16.66%; width: 83.34%; padding: 25px; height: 100vh; overflow-y: auto; }
+        
+        .scroll-section { height: 38vh; overflow-y: auto; scrollbar-width: thin; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        
+        .contact-card { border-left: 5px solid var(--accent-color); margin-bottom: 10px; }
+        .rubrica-item { border-left: 3px solid #bdc3c7; margin-bottom: 5px; transition: 0.2s; }
+        .rubrica-item:hover { border-left-color: #2ecc71; background: #f8f9fa; }
+        
+        .table-container { height: 75vh; overflow-y: auto; background: white; border-radius: 15px; }
+        .btn-appuntamento { background: var(--accent-color); color: white; font-weight: bold; border-radius: 50px; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <nav class="sidebar p-3 d-flex flex-column">
+                <div class="text-center mb-5">
+                    <h3 class="fw-bold mb-0 text-white"><i class="fas fa-tooth text-info me-2"></i>DentalCenter</h3>
+                    <span class="badge bg-info text-dark mt-2">CONSOLE STAFF</span>
+                </div>
+
+                <ul class="nav flex-column px-2">
+                    <li class="nav-item">
+                        <a class="nav-link active text-white p-3" href="#">
+                            <i class="fas fa-desktop me-2"></i> Dashboard
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="mt-auto p-3 border-top border-secondary">
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="btn btn-outline-danger w-100 rounded-pill fw-bold">
+                            <i class="fas fa-sign-out-alt me-2"></i> ESCI
+                        </button>
+                    </form>
+                </div>
+            </nav>
+
+            <main class="main-content">
+                <div class="row g-4">
+                    
+                    <div class="col-xl-4 col-lg-5">
+                        
+                        <div class="card p-3 mb-4">
+                            <h6 class="fw-bold text-primary mb-3"><i class="fas fa-clock me-2"></i>In Arrivo Oggi</h6>
+                            <div class="scroll-section">
+                                <div th:each="a : ${appuntamentiOggi}" class="card contact-card p-2 bg-light border-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="small">
+                                            <div class="fw-bold" th:text="${a.paziente.cognome} + ' ' + ${a.paziente.nome}"></div>
+                                            <div class="text-muted" th:text="${a.paziente.telefono}"></div>
+                                        </div>
+                                        <span class="badge bg-primary rounded-pill" th:text="${#temporals.format(a.dataOra, 'HH:mm')}"></span>
+                                    </div>
+                                </div>
+                                <div th:if="${#lists.isEmpty(appuntamentiOggi)}" class="text-center text-muted py-4 small">Nessuno per oggi</div>
+                            </div>
+                        </div>
+
+                        <div class="card p-3">
+                            <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-address-book me-2"></i>Rubrica Rapida</h6>
+                            <input type="text" id="searchPaz" class="form-control form-control-sm mb-3 shadow-sm" placeholder="Cerca paziente..." onkeyup="filterPaz()">
+                            <div class="scroll-section" id="listaPaz">
+                                <div th:each="p : ${pazienti}" class="card rubrica-item p-2 border-0 shadow-sm bg-white">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="small">
+                                            <div class="fw-bold nome-paz" th:text="${p.cognome} + ' ' + ${p.nome}"></div>
+                                            <div class="text-muted" th:text="${p.telefono}"></div>
+                                        </div>
+                                        <a th:href="'tel:' + ${p.telefono}" class="text-success"><i class="fas fa-phone-alt"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-8 col-lg-7">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                <h5 class="fw-bold mb-0 text-dark">Agenda Appuntamenti</h5>
+                                <button class="btn btn-appuntamento px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalApp">
+                                    <i class="fas fa-calendar-plus me-2"></i>Nuovo Appuntamento
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-container">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light sticky-top">
+                                            <tr class="small text-muted">
+                                                <th class="ps-4">Data/Ora</th>
+                                                <th>Paziente</th>
+                                                <th>Motivo</th>
+                                                <th class="text-center">Azione</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="app : ${appuntamenti}">
+                                                <td class="ps-4 fw-bold text-primary" th:text="${#temporals.format(app.dataOra, 'dd/MM HH:mm')}"></td>
+                                                <td class="fw-bold" th:text="${app.paziente.cognome} + ' ' + ${app.paziente.nome}"></td>
+                                                <td class="small" th:text="${app.motivo}"></td>
+                                                <td class="text-center">
+                                                    <a th:href="@{/appuntamenti/elimina/{id}(id=${app.id})}" class="btn btn-link text-danger p-0" onclick="return confirm('Cancellare?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalApp" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form th:action="@{/appuntamenti/salva}" method="post" class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-primary text-white py-4 border-0">
+                    <h5 class="modal-title fw-bold">Prenota Appuntamento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">SELEZIONA PAZIENTE</label>
+                        <select name="pazienteId" class="form-select border-2" required>
+                            <option value="">Scegli dalla rubrica...</option>
+                            <option th:each="p : ${pazienti}" th:value="${p.id}" th:text="${p.cognome} + ' ' + ${p.nome}"></option>
+                        </select>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">INIZIO</label>
+                            <input type="datetime-local" name="dataOra" class="form-control border-2" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">FINE</label>
+                            <input type="datetime-local" name="dataFine" class="form-control border-2" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">MOTIVO VISITA</label>
+                        <input type="text" name="motivo" class="form-control border-2" placeholder="Es: Igiene Dentale" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow">SALVA IN AGENDA</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function filterPaz() {
+            let val = document.getElementById('searchPaz').value.toLowerCase();
+            let cards = document.getElementsByClassName('rubrica-item');
+            for (let c of cards) {
+                let nome = c.querySelector('.nome-paz').innerText.toLowerCase();
+                c.style.display = nome.includes(val) ? "" : "none";
+            }
+        }
+    </script>
+</body>
+</html>

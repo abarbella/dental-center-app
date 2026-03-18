@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Area Paziente - DentalCenter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+    <style>
+        :root { --primary-color: #2c3e50; --accent-color: #3498db; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background: var(--primary-color) !important; border-bottom: 3px solid var(--accent-color); }
+        .card { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+        .card-header { background: white !important; border-bottom: 1px solid #eee; font-weight: 700; color: var(--primary-color); padding: 15px 20px; }
+        #calendar { background: white; padding: 15px; border-radius: 12px; min-height: 600px; }
+        .fc-event { cursor: pointer; border-radius: 4px !important; border: none !important; }
+        .fc-non-business { background: rgba(236, 240, 241, 0.8) !important; opacity: 1; }
+        .appointment-item { border-left: 4px solid var(--accent-color); transition: 0.2s; }
+        .appointment-item:hover { background: #f8fbff; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark mb-4 shadow-sm py-3">
+        <div class="container">
+            <span class="navbar-brand fs-4 fw-bold"> 
+                <i class="fas fa-tooth text-info me-2"></i>DentalCenter 
+                <span class="fw-normal opacity-75 ms-2 fs-6">| Area Paziente</span>
+            </span>
+            <div class="d-flex align-items-center text-white">
+                <div class="me-3 text-end d-none d-md-block">
+                    <small class="d-block opacity-75">Accesso effettuato come</small> 
+                    <span class="fw-bold" th:text="${paziente.nome} + ' ' + ${paziente.cognome}"></span>
+                </div>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="btn btn-outline-light rounded-pill px-4 btn-sm fw-bold">
+                        <i class="fas fa-sign-out-alt me-1"></i> ESCI
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-calendar-check me-2 text-primary"></i>I Miei Appuntamenti</span> 
+                        <span class="badge bg-primary rounded-pill" th:text="${#lists.size(mieiAppuntamenti)}">0</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <div th:each="a : ${mieiAppuntamenti}" class="list-group-item p-3 appointment-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="fw-bold text-dark fs-5 mb-1" th:text="${#temporals.format(a.dataOra, 'dd MMMM')}"></div>
+                                        <div class="text-primary fw-bold mb-1">
+                                            <i class="far fa-clock me-1"></i> ore <span th:text="${#temporals.format(a.dataOra, 'HH:mm')}"></span>
+                                        </div>
+                                        <div class="small text-muted text-uppercase fw-bold" th:text="${a.motivo}"></div>
+                                    </div>
+                                    <form th:action="@{/area-paziente/annulla}" method="post">
+                                        <input type="hidden" name="id" th:value="${a.id}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Annullare l\'appuntamento?');">Annulla</button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div th:if="${#lists.isEmpty(mieiAppuntamenti)}" class="p-5 text-center text-muted">Nessun appuntamento in programma.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header border-0 py-3 d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-calendar-alt me-2 text-info"></i>Prenota Visita</span> 
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-primary fw-normal">Tu</span>
+                            <span class="badge bg-secondary fw-normal">Occupato</span>
+                        </div>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div id="calendar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalPrenota" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form th:action="@{/appuntamenti/salva}" method="post" class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-primary text-white border-0 py-4 px-4" style="border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title fw-bold">Conferma Prenotazione</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="bg-primary-subtle text-primary rounded-pill d-inline-flex px-4 py-2 mb-4 fw-bold fs-5">
+                        <span id="displayData"></span>
+                    </div>
+                    <input type="hidden" name="pazienteId" th:value="${paziente.id}">
+                    <input type="hidden" name="dataOra" id="inputDataOra"> 
+                    <input type="hidden" name="dataFine" id="inputDataFine">
+                    
+                    <div class="text-start">
+                        <label class="form-label fw-bold small text-uppercase text-muted">Motivo della visita</label>
+                        <select name="motivo" class="form-select border-2 shadow-sm" required>
+                            <option value="">Seleziona...</option>
+                            <option value="Controllo Periodico">🦷 Controllo Periodico</option>
+                            <option value="Pulizia Dentale">✨ Pulizia Dentale</option>
+                            <option value="Urgenza / Dolore">🚨 Urgenza / Dolore</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow w-100 py-3">CONFERMA PRENOTAZIONE</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var modalEl = document.getElementById('modalPrenota');
+        var modal = new bootstrap.Modal(modalEl);
+        
+        // Definizione dati
+        var idPazienteLoggato = [[${paziente.id}]];
+        var eventiRaw = [];
+
+        (function() {
+            var start = [[${a.dataOra}]];
+            var end = [[${a.dataFine}]];
+            var pId = [[${a.paziente != null ? a.paziente.id : 0}]];
+            var motivo = [[${a.motivo}]];
+            
+            if (start && end) {
+                if (pId == idPazienteLoggato) {
+                    // MIEI APPUNTAMENTI (Azzurri)
+                    eventiRaw.push({
+                        title: 'Tua Visita: ' + motivo,
+                        start: start,
+                        end: end,
+                        color: '#3498db', 
+                        textColor: '#ffffff',
+                        display: 'block' 
+                    });
+                } else {
+                    // ALTRI APPUNTAMENTI (Grigi)
+                    eventiRaw.push({
+                        start: start,
+                        end: end,
+                        display: 'background',
+                        color: '#bdc3c7'
+                    });
+                }
+            }
+        })();
+        /*[/]*/
+        
+        (function() {
+            var s = [[${c.inizio}]];
+            var e = [[${c.fine}]];
+            if (s && e) {
+                eventiRaw.push({ 
+                    start: s, 
+                    end: e, 
+                    color: '#e74c3c', 
+                    display: 'background' 
+                });
+            }
+        })();
+        /*[/]*/
+
+        // Inizializzazione Calendario
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek',
+            locale: 'it',
+            allDaySlot: false,
+            slotMinTime: '08:00:00',
+            slotMaxTime: '21:30:00',
+            firstDay: 1, 
+            events: eventiRaw,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'timeGridWeek,timeGridDay'
+            },
+            businessHours: [
+                { daysOfWeek: [1,2,3,4,5,6], startTime: '09:00', endTime: '12:00' },
+                { daysOfWeek: [1,2,3,4,5,6], startTime: '15:00', endTime: '20:30' }
+            ],
+            selectConstraint: 'businessHours',
+            dateClick: function(info) {
+                var clickDate = new Date(info.dateStr);
+                var today = new Date();
+                
+                if (clickDate < today) { 
+                    alert("Non puoi prenotare nel passato!"); 
+                    return; 
+                }
+
+                // Controllo sovrapposizione universale
+                var isOccupato = eventiRaw.some(function(ev) {
+                    var startEv = new Date(ev.start);
+                    var endEv = new Date(ev.end);
+                    return (clickDate >= startEv && clickDate < endEv);
+                });
+
+                if (isOccupato) {
+                    alert("Questo orario è già occupato. Seleziona una zona bianca.");
+                    return;
+                }
+
+                let fine = new Date(clickDate);
+                fine.setHours(fine.getHours() + 1);
+                
+                let tzOffset = fine.getTimezoneOffset() * 60000;
+                let localISOTimeFine = new Date(fine - tzOffset).toISOString().substring(0, 16);
+                
+                document.getElementById('inputDataOra').value = info.dateStr.substring(0, 16);
+                document.getElementById('inputDataFine').value = localISOTimeFine;
+                document.getElementById('displayData').innerText = clickDate.toLocaleString('it-IT', { 
+                    day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+                });
+                
+                modal.show();
+            }
+        });
+        
+        calendar.render();
+    });
+    </script>
+</body>
+</html>

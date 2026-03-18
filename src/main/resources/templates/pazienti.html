@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8">
+<title>DentalCenter - Anagrafica Pazienti</title>
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+	rel="stylesheet">
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+	--primary-color: #2c3e50;
+	--accent-color: #3498db;
+}
+
+body {
+	background-color: #f4f7f6;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	overflow-x: hidden; /* Nasconde lo scorrimento orizzontale generale */
+}
+
+/* Sidebar coordinata e responsiva */
+.sidebar {
+	min-height: 100vh;
+	background: var(--primary-color);
+	color: white;
+	/* Larghezza relativa per adattarsi allo schermo */
+	width: 20%; 
+	max-width: 250px; /* Larghezza massima per evitare che sia troppo larga */
+	position: fixed;
+	z-index: 1000;
+	transition: width 0.3s;
+}
+
+.nav-link {
+	color: #bdc3c7;
+	margin: 8px 0;
+	transition: 0.3s;
+	padding: 12px 20px;
+}
+
+.nav-link:hover {
+	color: white;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 10px;
+}
+
+.nav-link.active {
+	background: var(--accent-color);
+	color: white;
+	border-radius: 10px;
+	box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+/* Main Content fluido */
+.main-content {
+	/* Margine sinistro relativo alla sidebar per adattarsi */
+	margin-left: 20%; 
+	width: 80%; /* Larghezza relativa */
+	padding: 30px;
+	transition: margin-left 0.3s, width 0.3s;
+}
+
+/* Media query per dispositivi più piccoli */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        max-width: 100%;
+        position: relative;
+        min-height: auto;
+    }
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+.card {
+	border: none;
+	border-radius: 15px;
+	background: white;
+	transition: 0.3s;
+}
+
+.table thead {
+	background: #f8f9fa;
+}
+
+.table thead th {
+	border-bottom: 2px solid #dee2e6;
+	color: var(--primary-color);
+	text-transform: uppercase;
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.5px;
+}
+
+.patient-row:hover {
+	background-color: #f8fbff !important;
+}
+
+.allergy-badge {
+	font-size: 0.75rem;
+	padding: 5px 10px;
+	border-radius: 20px;
+}
+
+.btn-action {
+	border-radius: 8px;
+	width: 35px;
+	height: 35px;
+	padding: 0;
+	line-height: 35px;
+	text-align: center;
+	transition: 0.2s;
+}
+
+/* Stile Esci coordinato */
+.logout-container {
+	margin-top: auto;
+	padding: 20px;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Classi per l'allineamento e lo stile del logo */
+.text-center { text-center; }
+.mb-4 { margin-bottom: 1.5rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.fa-2x { font-size: 2em; }
+.text-info { color: #17a2b8; }
+.fw-bold { font-weight: 700; }
+.badge { display: inline-block; padding: 0.35em 0.65em; font-size: 0.75em; font-weight: 700; line-height: 1; text-align: center; white-space: nowrap; vertical-align: baseline; border-radius: 0.25rem; }
+.bg-info { background-color: #17a2b8; }
+.text-dark { color: #343a40; }
+.rounded-pill { border-radius: 50rem; }
+</style>
+</head>
+<body>
+	<div class="container-fluid p-0">
+		<div class="row g-0">
+			<nav class="sidebar d-flex flex-column p-3">
+				<div class="text-center mb-4">
+					<div class="mb-2">
+						<i class="fas fa-tooth text-info fa-2x"></i>
+					</div>
+					<h3 class="fw-bold mb-0 text-white">DentalCenter</h3>
+					<span class="badge bg-info text-dark small mt-2">Professional
+						Edition</span>
+				</div>
+				<div class="px-2">
+					<ul class="nav flex-column">
+						<li class="nav-item"><a class="nav-link" href="/home"><i
+								class="fas fa-th-large me-2"></i> Dashboard</a></li>
+						<li class="nav-item"><a class="nav-link" href="/calendario"><i
+								class="fas fa-calendar-alt me-2"></i> Agenda</a></li>
+						<li class="nav-item"><a class="nav-link active" href="/pazienti"><i
+								class="fas fa-user-friends me-2"></i> Pazienti</a></li>
+						<li class="nav-item"><a class="nav-link" href="/contabilita"><i
+								class="fas fa-chart-line me-2"></i> Contabilità</a></li>
+					</ul>
+				</div>
+
+				<div class="logout-container mt-auto">
+					<form th:action="@{/logout}" method="post">
+						<button type="submit"
+							class="btn btn-outline-danger w-100 rounded-pill border-2 fw-bold">
+							<i class="fas fa-power-off me-2"></i> Esci
+						</button>
+					</form>
+				</div>
+			</nav>
+
+			<main class="main-content">
+				<div class="d-flex justify-content-between align-items-center mb-4">
+					<div>
+						<h1 class="fw-bold mb-0 text-dark">Anagrafica Pazienti</h1>
+						<p class="text-muted">Database centrale dello studio
+							DentalCenter</p>
+					</div>
+
+					<div class="d-flex gap-2">
+						<form th:action="@{/pazienti/cerca}" method="get" class="d-flex">
+							<div class="input-group">
+								<input type="text" name="keyword"
+									class="form-control rounded-start-pill ps-4 border-2"
+									placeholder="Cerca cognome o CF..." style="width: 250px;">
+								<button class="btn btn-primary rounded-end-pill px-3"
+									type="submit">
+									<i class="fas fa-search"></i>
+								</button>
+							</div>
+						</form>
+						<a href="/pazienti/nuovo"
+							class="btn btn-primary shadow-sm rounded-pill px-4 fw-bold">
+							<i class="fas fa-user-plus me-2"></i>Nuovo
+						</a>
+					</div>
+				</div>
+
+				<div th:if="${param.success}"
+					class="alert alert-success border-0 shadow-sm alert-dismissible fade show rounded-4">
+					<i class="fas fa-check-circle me-2"></i> <strong>Ottimo!</strong>
+					Operazione completata con successo.
+					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+				</div>
+
+				<div class="card shadow-sm border-0 overflow-hidden">
+					<div class="card-body p-0">
+						<div class="table-responsive">
+							<table class="table table-hover align-middle mb-0">
+								<thead>
+									<tr>
+										<th class="ps-4 py-3">Paziente</th>
+										<th>Codice Fiscale</th>
+										<th>Contatti</th>
+										<th>Stato Clinico</th>
+										<th class="text-end pe-4">Azioni</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="p : ${pazienti}" class="patient-row">
+										<td class="ps-4">
+											<div class="fw-bold text-dark fs-6"
+												th:text="${p.cognome} + ' ' + ${p.nome}"></div> <small
+											class="text-muted"><i class="far fa-envelope me-1"></i><span
+												th:text="${p.email}"></span></small>
+										</td>
+										<td><span
+											class="badge bg-light text-dark border font-monospace"
+											th:text="${p.codiceFiscale}"></span></td>
+										<td>
+											<div class="small fw-bold text-secondary">
+												<i class="fas fa-phone-alt me-2 text-primary opacity-50"></i><span
+													th:text="${p.telefono}"></span>
+											</div>
+										</td>
+										<td><span
+											th:if="${p.allergie != null and p.allergie != ''}"
+											class="badge bg-danger-subtle text-danger border border-danger-subtle allergy-badge">
+												<i class="fas fa-exclamation-triangle me-1"></i> <span
+												th:text="${p.allergie}"></span>
+										</span> <span th:unless="${p.allergie != null and p.allergie != ''}"
+											class="badge bg-success-subtle text-success border border-success-subtle allergy-badge">
+												<i class="fas fa-check me-1"></i> Nessuna Allergia
+										</span></td>
+										<td class="text-end pe-4">
+											<div class="d-flex justify-content-end gap-2">
+												<a th:href="@{/pazienti/cartella/{id}(id=${p.id})}"
+													sec:authorize="hasRole('MEDICO')"
+													class="btn btn-action btn-outline-primary"
+													title="Apri Cartella Clinica"> <i
+													class="fas fa-file-medical"></i>
+												</a> <a th:href="@{/pazienti/modifica/{id}(id=${p.id})}"
+													class="btn btn-action btn-outline-warning"
+													title="Modifica Anagrafica"> <i
+													class="fas fa-user-edit"></i>
+												</a> <a th:href="@{/pazienti/elimina/{id}(id=${p.id})}"
+													sec:authorize="hasRole('MEDICO')"
+													class="btn btn-action btn-outline-danger"
+													onclick="return confirm('Attenzione: eliminando il paziente perderai tutti i suoi dati clinici. Continuare?');"
+													title="Elimina Paziente"> <i class="fas fa-trash-alt"></i>
+												</a>
+											</div>
+										</td>
+									</tr>
+									<tr th:if="${#lists.isEmpty(pazienti)}">
+										<td colspan="5" class="text-center py-5">
+											<div class="text-muted">
+												<i class="fas fa-users-slash fa-3x mb-3 opacity-25"></i>
+												<p>L'archivio è vuoto. Inizia inserendo un nuovo
+													paziente.</p>
+											</div>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</main>
+		</div>
+
+		<script
+			src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

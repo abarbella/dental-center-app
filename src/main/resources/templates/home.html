@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>DentalCenter - Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+	--primary-color: #2c3e50;
+	--accent-color: #3498db;
+}
+
+body {
+	background-color: #f4f7f6;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.sidebar {
+	min-height: 100vh;
+	background: var(--primary-color);
+	color: white;
+	width: 16.66%;
+	position: fixed;
+}
+
+.nav-link {
+	color: #bdc3c7;
+	margin: 8px 0;
+	transition: 0.3s;
+	padding: 12px 20px;
+}
+
+.nav-link:hover {
+	color: white;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 10px;
+}
+
+.nav-link.active {
+	background: var(--accent-color);
+	color: white;
+	border-radius: 10px;
+	box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.main-content {
+	margin-left: 16.66%;
+	padding: 30px;
+}
+
+.stat-card {
+	border: none;
+	border-radius: 15px;
+	background: white;
+	transition: 0.3s;
+}
+
+.stat-card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+.quick-action-card {
+	border: none;
+	border-radius: 15px;
+	cursor: pointer;
+	transition: 0.3s;
+	background: white;
+	text-align: center;
+	padding: 20px;
+	border: 1px solid transparent;
+}
+
+.quick-action-card:hover {
+	border-color: var(--accent-color);
+	color: var(--accent-color);
+	background: #ebf5fb;
+}
+
+.quick-action-card i {
+	font-size: 2rem;
+	margin-bottom: 10px;
+	display: block;
+}
+
+.richiamo-row {
+	border-left: 5px solid #f1c40f;
+}
+
+.badge-agenda {
+	background: #e8f4fd;
+	color: #2980b9;
+	border: 1px solid #d0e9fb;
+	font-weight: 600;
+	padding: 8px 12px;
+	border-radius: 8px;
+}
+
+.logout-container {
+	margin-top: auto;
+	padding: 20px;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ================= CHATBOT STYLES ================= */
+.chatbot-container { position: fixed; bottom: 30px; right: 30px; z-index: 1050; }
+.chatbot-btn { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+.chatbot-btn:hover { transform: scale(1.1); }
+.chatbot-panel { position: absolute; bottom: 75px; right: 0; width: 320px; border-radius: 15px; background: white; border: none; overflow: hidden; transform-origin: bottom right; transition: 0.3s; }
+.chat-message { font-size: 0.85rem; line-height: 1.4; }
+.bot-message { background: #ebf5fb; color: #2c3e50; border-bottom-left-radius: 2px !important; }
+/* ================================================== */
+</style>
+</head>
+<body>
+
+	<div class="container-fluid p-0">
+		<div class="row g-0">
+			<nav class="sidebar d-flex flex-column p-3">
+				<div class="text-center mb-4">
+					<div class="mb-2">
+						<i class="fas fa-tooth text-info fa-2x"></i>
+					</div>
+					<h3 class="fw-bold mb-0 text-white">DentalCenter</h3>
+					<span class="badge bg-info text-dark small mt-2">Professional Edition</span>
+				</div>
+				<div class="px-2">
+					<ul class="nav flex-column">
+						<li class="nav-item"><a class="nav-link active" href="/home"><i class="fas fa-th-large me-2"></i> Dashboard</a></li>
+						<li class="nav-item"><a class="nav-link" href="/calendario"><i class="fas fa-calendar-alt me-2"></i> Agenda</a></li>
+						<li class="nav-item"><a class="nav-link" href="/pazienti"><i class="fas fa-user-friends me-2"></i> Pazienti</a></li>
+						<li class="nav-item"><a class="nav-link" href="/contabilita"><i class="fas fa-chart-line me-2"></i> Contabilità</a></li>
+					</ul>
+				</div>
+                
+                <div class="logout-container mt-auto">
+					<form th:action="@{/logout}" method="post">
+						<button type="submit"
+							class="btn btn-outline-danger w-100 rounded-pill border-2 fw-bold">
+							<i class="fas fa-power-off me-2"></i> Esci
+						</button>
+					</form>
+				</div>
+			</nav>
+
+			<main class="main-content col">
+				<div class="d-flex justify-content-between align-items-end mb-5">
+					<div>
+						<h1 class="fw-bold mb-0" th:text="${salutoNome}">Bentornato, Dottore</h1>
+						<p class="fs-5 text-primary fw-bold opacity-75 mt-1 mb-0" th:text="${salutoSpec}">Gestione quotidiana dello studio.</p>
+					</div>
+					<div class="text-end">
+						<h5 class="fw-bold mb-0" th:text="${dataOggi}"></h5>
+						<span class="badge bg-success"><i class="fas fa-circle me-1 small"></i> Sistema Operativo</span>
+					</div>
+				</div>
+
+				<div class="row g-4 mb-5">
+					<div class="col-md-4">
+						<div class="card stat-card shadow-sm p-4 border-start border-primary border-5 h-100">
+							<small class="text-muted fw-bold">PAZIENTI IN ARCHIVIO</small>
+							<h2 class="fw-bold mt-2 mb-0" th:text="${totalePazienti ?: 0}">0</h2>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="card stat-card shadow-sm p-4 border-start border-success border-5 h-100">
+							<small class="text-muted fw-bold">APPUNTAMENTI OGGI</small>
+							<h2 class="fw-bold mt-2 mb-0" th:text="${countOggi ?: 0}">0</h2>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="card stat-card shadow-sm p-4 border-start border-warning border-5 h-100">
+							<small class="text-muted fw-bold">RICHIAMI (7 GG)</small>
+							<h2 class="fw-bold mt-2 mb-0" th:text="${richiami != null ? richiami.size() : 0}">0</h2>
+						</div>
+					</div>
+				</div>
+
+				<h5 class="fw-bold mb-3">
+					<i class="fas fa-bolt me-2 text-warning"></i>Azioni Rapide
+				</h5>
+				<div class="row g-4 mb-5">
+					<div class="col-md-3" onclick="location.href='/pazienti/nuovo'">
+						<div class="quick-action-card shadow-sm">
+							<i class="fas fa-user-plus text-primary"></i> <span class="fw-bold">Nuovo Paziente</span>
+						</div>
+					</div>
+					<div class="col-md-3" onclick="location.href='/calendario'">
+						<div class="quick-action-card shadow-sm">
+							<i class="fas fa-calendar-plus text-success"></i> <span class="fw-bold">Inserisci Ferie</span>
+						</div>
+					</div>
+					<div class="col-md-3" onclick="location.href='/contabilita'">
+						<div class="quick-action-card shadow-sm">
+							<i class="fas fa-file-invoice-dollar text-info"></i> <span class="fw-bold">Bilancio Mensile</span>
+						</div>
+					</div>
+					<div class="col-md-3" onclick="alert('Backup avviato...')">
+						<div class="quick-action-card shadow-sm">
+							<i class="fas fa-database text-secondary"></i> <span class="fw-bold">Backup Dati</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="row g-4">
+					<div class="col-md-7">
+						<div class="card shadow-sm border-0 h-100">
+							<div class="card-header bg-white py-3">
+								<h5 class="mb-0 fw-bold text-dark">
+									<i class="fas fa-bullhorn me-2 text-warning"></i>Richiami in Scadenza
+								</h5>
+							</div>
+							<div class="card-body p-0">
+								<table class="table table-hover align-middle mb-0">
+									<thead class="table-light small text-uppercase">
+										<tr>
+											<th class="ps-3">Paziente</th>
+											<th>Contatto</th>
+											<th>Data Richiamo</th>
+											<th class="text-end pe-3">Azione</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr th:each="r : ${richiami}" class="richiamo-row">
+											<td class="ps-3">
+												<div class="fw-bold" th:text="${r.paziente.cognome} + ' ' + ${r.paziente.nome}"></div>
+											</td>
+											<td th:text="${r.paziente.telefono}"></td>
+											<td><span class="badge bg-light text-dark" th:text="${#temporals.format(r.dataRichiamo, 'dd/MM/yyyy')}"></span></td>
+											<td class="text-end pe-3"><a th:href="@{/calendario}" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold">Fissa</a></td>
+										</tr>
+										<tr th:if="${#lists.isEmpty(richiami)}">
+											<td colspan="4" class="text-center py-5 text-muted">Nessun richiamo urgente per questa settimana.</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+
+					<div class="col-md-5">
+						<div class="card shadow-sm border-0 h-100">
+							<div class="card-header bg-white py-3">
+								<h5 class="mb-0 fw-bold text-dark">
+									<i class="far fa-clock text-primary me-2"></i>Agenda Rapida
+								</h5>
+							</div>
+							<div class="card-body p-0">
+								<ul class="list-group list-group-flush">
+									<li th:each="a : ${prossimiAppuntamenti}" class="list-group-item p-3 border-start border-primary border-4 mb-1">
+										<div class="d-flex justify-content-between align-items-center">
+											<div>
+												<h6 class="mb-0 fw-bold text-dark" th:text="${a.paziente.cognome} + ' ' + ${a.paziente.nome}"></h6>
+												<small class="text-muted" th:text="${a.motivo}"></small>
+											</div>
+											<div class="badge-agenda">
+												<i class="far fa-calendar-alt me-1"></i> <span th:text="${#temporals.format(a.dataOra, 'dd/MM')}"></span> <span class="mx-1">|</span> <i class="far fa-clock me-1"></i> <span th:text="${#temporals.format(a.dataOra, 'HH:mm')}"></span>
+											</div>
+										</div>
+									</li>
+									<li th:if="${#lists.isEmpty(prossimiAppuntamenti)}" class="list-group-item text-center py-5 text-muted">Agenda libera.</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</main>
+		</div>
+	</div>
+
+	<div class="chatbot-container">
+		<div class="chatbot-panel shadow-lg" id="chatPanel" style="display: none;">
+			<div class="chat-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
+				<h6 class="mb-0 fw-bold"><i class="fas fa-robot me-2"></i>Assistente AI</h6>
+				<button type="button" class="btn-close btn-close-white" style="font-size: 0.7rem;" onclick="toggleChat()"></button>
+			</div>
+			<div class="chat-body p-3" style="height: 250px; overflow-y: auto; background-color: #f8f9fa;">
+				<div class="chat-message bot-message p-3 rounded-4 shadow-sm w-85 mb-2 border border-primary-subtle">
+					<strong><i class="fas fa-tooth text-primary me-1"></i> DentalBot</strong><br>
+					Salve Dottore! Sono il tuo assistente virtuale. Posso aiutarti a cercare una cartella clinica o a calcolare un preventivo?
+				</div>
+			</div>
+			<div class="chat-footer p-2 bg-white border-top d-flex gap-2">
+				<input type="text" class="form-control rounded-pill bg-light border-0" placeholder="Scrivi un messaggio..." onclick="alert('Il modulo AI sarà attivato nella versione Premium!')">
+				<button class="btn btn-primary rounded-circle" onclick="alert('Il modulo AI sarà attivato nella versione Premium!')">
+					<i class="fas fa-paper-plane"></i>
+				</button>
+			</div>
+		</div>
+
+		<button class="btn btn-primary rounded-circle shadow-lg chatbot-btn ms-auto" onclick="toggleChat()">
+			<i class="fas fa-comment-medical fa-2x"></i>
+		</button>
+	</div>
+
+	<script>
+		function toggleChat() {
+			var panel = document.getElementById('chatPanel');
+			if (panel.style.display === 'none' || panel.style.display === '') {
+				panel.style.display = 'block';
+			} else {
+				panel.style.display = 'none';
+			}
+		}
+	</script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
