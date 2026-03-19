@@ -56,6 +56,26 @@ L'applicazione sarà in ascolto sulla porta 8081. Aprire il browser all'indirizz
 
 ---
 
+## Credenziali di Accesso e Testing
+Per agevolare la valutazione dell'applicativo da parte della commissione, utilizzare le seguenti credenziali di test preconfigurate nel database per esplorare le diverse dashboard:
+
+**Accesso Medico (Admin)**
+* **Email:** `medico@dentalcenter.it`
+* **Password:** `password123`
+
+**Accesso Staff (Segreteria)**
+* **Email:** `staff@dentalcenter.it`
+* **Password:** `password123`
+
+**Accesso Paziente (Come testarlo)**
+Per testare l'area riservata ai pazienti, la procedura operativa prevede:
+1. Effettuare il login come Medico.
+2. Registrare un nuovo paziente dall'apposita sezione anagrafica.
+3. Effettuare il logout.
+4. Accedere al portale di login inserendo come Email quella appena registrata e come Password il Codice Fiscale del paziente stesso.
+   
+---
+
 ## Documentazione API (Swagger)
 Il backend espone le sue logiche tramite API documentate automaticamente. A server avviato, è possibile ispezionare gli endpoint, i modelli dati e testare le richieste all'indirizzo:
 * **Swagger UI:** http://localhost:8081/swagger-ui.html
