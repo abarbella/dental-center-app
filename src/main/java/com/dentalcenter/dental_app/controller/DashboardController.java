@@ -125,17 +125,26 @@ public class DashboardController {
     @GetMapping("/home-staff")
     public String homeStaff(Model model) {
         LocalDate oggi = LocalDate.now();
+        
+        // 1. Prendi tutti i pazienti per la rubrica
         List<Paziente> tuttiPazienti = pazienteRepository.findAll();
-        List<Appuntamento> tuttiAppuntamenti = appuntamentoRepository.findAll();
-
-        List<Appuntamento> appuntamentiOggi = tuttiAppuntamenti.stream()
-                .filter(a -> a.getDataOra() != null && a.getDataOra().toLocalDate().equals(oggi))
+        
+        // 2. Prendi TUTTI gli appuntamenti e ordinali per data/ora
+        List<Appuntamento> tuttiAppuntamentiOrdinati = appuntamentoRepository.findAll()
+                .stream()
+                .filter(a -> a.getDataOra() != null)
                 .sorted((a1, a2) -> a1.getDataOra().compareTo(a2.getDataOra()))
                 .collect(Collectors.toList());
 
+        // 3. Filtra quelli di oggi 
+        List<Appuntamento> appuntamentiOggi = tuttiAppuntamentiOrdinati.stream()
+                .filter(a -> a.getDataOra().toLocalDate().equals(oggi))
+                .collect(Collectors.toList());
+
+        // 4. Passa le liste ordinate al modello
         model.addAttribute("pazienti", tuttiPazienti);
-        model.addAttribute("appuntamentiOggi", appuntamentiOggi);
-        model.addAttribute("appuntamenti", tuttiAppuntamenti);
+        model.addAttribute("appuntamenti", tuttiAppuntamentiOrdinati); 
+        model.addAttribute("appuntamentiOggi", appuntamentiOggi);       
         
         return "home-staff";
     }
