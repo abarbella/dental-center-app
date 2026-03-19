@@ -58,7 +58,7 @@ L'applicazione sarà in ascolto sulla porta 8081. Aprire il browser all'indirizz
 
 ## Documentazione API (Swagger)
 Il backend espone le sue logiche tramite API documentate automaticamente. A server avviato, è possibile ispezionare gli endpoint, i modelli dati e testare le richieste all'indirizzo:
-* 🔗 **Swagger UI:** http://localhost:8081/swagger-ui.html
+* **Swagger UI:** http://localhost:8081/swagger-ui.html
 
 ---
 
